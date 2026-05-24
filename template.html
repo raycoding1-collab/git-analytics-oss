@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitAnalytics Pro (OSS Lite) - Repository Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    body { background-color: #070a13; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+    .glass-card { background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .glass-input { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
+  </style>
+</head>
+<body class="min-h-screen pb-12 antialiased">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    
+    <!-- Promotion Banner -->
+    <div class="glass-card border border-indigo-500/30 rounded-xl p-4 mb-8 flex flex-col sm:flex-row justify-between items-center gap-4 bg-indigo-950/20">
+      <div class="text-sm">
+        <span class="font-bold text-indigo-300">Upgrade to Pro:</span> Unlock Conventional Commits, Work Rhythm metrics, File Churn hotspots, and dynamic filters.
+      </div>
+      <a href="https://raycoder2.gumroad.com/l/git-analytics-pro-brfnr" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white transition duration-150">
+        Get GitAnalytics Pro ↗
+      </a>
+    </div>
+
+    <!-- Header -->
+    <header class="flex justify-between items-center gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">
+          <span class="bg-gradient-to-r from-indigo-200 to-indigo-400 bg-clip-text text-transparent">GitAnalytics OSS</span>
+        </h1>
+        <p class="text-slate-400 text-sm mt-1" id="repo-title">Analyzing: Loading...</p>
+      </div>
+    </header>
+
+    <!-- Key Performance Indicators -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="glass-card rounded-xl p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Commits</p>
+        <h3 class="text-2xl font-bold mt-1 text-indigo-300" id="kpi-commits">0</h3>
+      </div>
+      <div class="glass-card rounded-xl p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Code Growth (Net)</p>
+        <h3 class="text-2xl font-bold mt-1 text-emerald-400" id="kpi-net-lines">+0</h3>
+      </div>
+      <div class="glass-card rounded-xl p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Authors</p>
+        <h3 class="text-2xl font-bold mt-1 text-fuchsia-300" id="kpi-authors">0</h3>
+      </div>
+    </section>
+
+    <!-- Main Analytics Charts -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- LOC Growth -->
+      <div class="glass-card rounded-xl p-5 col-span-1 lg:col-span-2">
+        <h2 class="text-base font-bold text-slate-200 mb-4">Lines of Code (LOC) Growth</h2>
+        <div class="h-64 relative"><canvas id="chart-loc-growth"></canvas></div>
+      </div>
+      <!-- Commit Volume -->
+      <div class="glass-card rounded-xl p-5">
+        <h2 class="text-base font-bold text-slate-200 mb-4">Weekly Commits Volume</h2>
+        <div class="h-64 relative"><canvas id="chart-commit-volume"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Pro Locked Visualizations Banner -->
+    <section class="glass-card rounded-xl p-8 mb-8 text-center flex flex-col items-center gap-4 bg-slate-900/10">
+      <svg class="w-12 h-12 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+      <div>
+        <h3 class="text-lg font-bold text-slate-200">Advanced Analytics Locked</h3>
+        <p class="text-xs text-slate-400 mt-1 max-w-lg">Get conventional commit summaries, work rhythm radar charts, contributor commit share percentage, file extension size reviews, and interactive logs filtering in the Pro edition.</p>
+      </div>
+      <a href="https://raycoder2.gumroad.com/l/git-analytics-pro-brfnr" target="_blank" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white transition duration-150">
+        Unlock All Visualizations ($12)
+      </a>
+    </section>
+  </div>
+
+  <script>
+    const GIT_DATA_BASE64 = "%%GIT_DATA_BASE64%%";
+    let repoData = {};
+
+    window.onload = function() {
+      try {
+        const decoded = atob(GIT_DATA_BASE64.trim());
+        repoData = JSON.parse(decoded);
+      } catch (err) {
+        document.getElementById('repo-title').innerText = "Error decoding repository payload.";
+        return;
+      }
+
+      document.getElementById('repo-title').innerText = repoData.repoPath || "Unknown Repository";
+      renderDashboard();
+    };
+
+    function renderDashboard() {
+      const commits = repoData.commits;
+      
+      // Update KPIs
+      let netLines = 0;
+      const authors = new Set();
+      commits.forEach(c => {
+        authors.add(c.authorEmail);
+        netLines += (c.added - c.deleted);
+      });
+
+      document.getElementById('kpi-commits').innerText = commits.length.toLocaleString();
+      document.getElementById('kpi-net-lines').innerText = (netLines >= 0 ? '+' : '') + netLines.toLocaleString();
+      document.getElementById('kpi-authors').innerText = authors.size.toString();
+
+      // Render LOC growth
+      const chronCommits = [...commits].reverse();
+      let currentLOC = 0;
+      const locData = [];
+      const locLabels = [];
+      const locByDate = {};
+
+      chronCommits.forEach(c => {
+        const dateStr = c.date.split('T')[0];
+        const net = c.added - c.deleted;
+        locByDate[dateStr] = (locByDate[dateStr] || 0) + net;
+      });
+
+      Object.keys(locByDate).sort().forEach(dateStr => {
+        currentLOC += locByDate[dateStr];
+        locData.push(currentLOC);
+        locLabels.push(dateStr);
+      });
+
+      new Chart(document.getElementById('chart-loc-growth').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: locLabels,
+          datasets: [{
+            data: locData,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.05)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', maxTicksLimit: 8 } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }
+          }
+        }
+      });
+
+      // Render Weekly Commits
+      const commitsByWeek = {};
+      commits.forEach(c => {
+        const d = new Date(c.date);
+        const day = d.getDay();
+        const diff = d.getDate() - day;
+        const sunday = new Date(d.setDate(diff));
+        const weekKey = sunday.toISOString().split('T')[0];
+        commitsByWeek[weekKey] = (commitsByWeek[weekKey] || 0) + 1;
+      });
+
+      const weeklyKeys = Object.keys(commitsByWeek).sort();
+      const weeklyCounts = weeklyKeys.map(k => commitsByWeek[k]);
+
+      new Chart(document.getElementById('chart-commit-volume').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: weeklyKeys,
+          datasets: [{
+            data: weeklyCounts,
+            backgroundColor: 'rgba(162, 28, 175, 0.65)',
+            borderColor: '#d946ef',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', maxTicksLimit: 6 } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', precision: 0 } }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
