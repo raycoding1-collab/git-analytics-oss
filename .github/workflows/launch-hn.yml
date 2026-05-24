@@ -1,0 +1,26 @@
+name: Launch Hacker News
+
+on:
+  schedule:
+    # 12:00 UTC = 14:00 (2:00 PM) CEST on Tuesday, May 26, 2026
+    - cron: '0 12 26 5 *'
+  workflow_dispatch: # Allows manual trigger for testing
+
+jobs:
+  launch-hn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Execute Autonomous Hacker News Submission
+        env:
+          HN_USERNAME: ${{ secrets.HN_USERNAME }}
+          HN_PASSWORD: ${{ secrets.HN_PASSWORD }}
+        run: |
+          node autonomous_poster.js hn

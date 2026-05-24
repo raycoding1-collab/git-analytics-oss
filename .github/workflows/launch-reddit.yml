@@ -1,0 +1,49 @@
+name: Launch Reddit
+
+on:
+  schedule:
+    # 17:30 UTC = 19:30 (7:30 PM) CEST on Tuesday, May 26, 2026
+    - cron: '30 17 26 5 *'
+  workflow_dispatch: # Allows manual trigger for testing
+
+jobs:
+  launch-reddit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Post to r/SideProject
+        env:
+          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
+          REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: node autonomous_poster.js reddit_sideproject
+
+      - name: Wait 5 minutes
+        run: sleep 300
+
+      - name: Post to r/selfhosted
+        env:
+          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
+          REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: node autonomous_poster.js reddit_selfhosted
+
+      - name: Wait 5 minutes
+        run: sleep 300
+
+      - name: Post to r/webdev
+        env:
+          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
+          REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: node autonomous_poster.js reddit_webdev
