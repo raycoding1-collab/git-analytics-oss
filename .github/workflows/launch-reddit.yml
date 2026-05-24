@@ -20,10 +20,7 @@ jobs:
 
       - name: Post to r/SideProject
         env:
-          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
-          REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_SESSION: ${{ secrets.REDDIT_SESSION }}
         run: node autonomous_poster.js reddit_sideproject
 
       - name: Wait 5 minutes
@@ -31,10 +28,7 @@ jobs:
 
       - name: Post to r/selfhosted
         env:
-          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
-          REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_SESSION: ${{ secrets.REDDIT_SESSION }}
         run: node autonomous_poster.js reddit_selfhosted
 
       - name: Wait 5 minutes
@@ -42,8 +36,5 @@ jobs:
 
       - name: Post to r/webdev
         env:
-          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
-          REDDIT_PASSWORD: ${{ secrets.REDDIT_PASSWORD }}
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_SESSION: ${{ secrets.REDDIT_SESSION }}
         run: node autonomous_poster.js reddit_webdev

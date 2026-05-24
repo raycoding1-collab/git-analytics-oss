@@ -13,10 +13,7 @@ function loadCredentials() {
     return {
       hn_username: process.env.HN_USERNAME,
       hn_password: process.env.HN_PASSWORD,
-      reddit_username: process.env.REDDIT_USERNAME,
-      reddit_password: process.env.REDDIT_PASSWORD,
-      reddit_client_id: process.env.REDDIT_CLIENT_ID,
-      reddit_client_secret: process.env.REDDIT_CLIENT_SECRET
+      reddit_session: process.env.REDDIT_SESSION
     };
   }
 
@@ -25,10 +22,7 @@ function loadCredentials() {
     const template = {
       hn_username: 'YOUR_HN_USERNAME',
       hn_password: 'YOUR_HN_PASSWORD',
-      reddit_username: 'YOUR_REDDIT_USERNAME',
-      reddit_password: 'YOUR_REDDIT_PASSWORD',
-      reddit_client_id: 'YOUR_REDDIT_CLIENT_ID',
-      reddit_client_secret: 'YOUR_REDDIT_CLIENT_SECRET'
+      reddit_session: 'YOUR_REDDIT_SESSION_COOKIE_VALUE'
     };
     fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(template, null, 2), 'utf8');
     throw new Error('credentials.json was not found. We created a template. Please fill in your real credentials or set environment variables.');
@@ -170,49 +164,45 @@ async function submitToHN(username, password, title, url, commentText) {
   return `https://news.ycombinator.com/item?id=${itemId}`;
 }
 
-// Reddit Automation
-async function submitToReddit(creds, subreddit, title, url, commentText) {
-  console.log(`Authenticating with Reddit API for user ${creds.reddit_username}...`);
-  const auth = Buffer.from(`${creds.reddit_client_id}:${creds.reddit_client_secret}`).toString('base64');
-  
-  const tokenData = querystring.stringify({
-    grant_type: 'password',
-    username: creds.reddit_username,
-    password: creds.reddit_password
+// Reddit Automation via Session Cookies (old.reddit.com)
+async function submitToReddit(sessionCookie, subreddit, title, url, commentText) {
+  console.log(`Submitting to Reddit r/${subreddit} using session cookie...`);
+  const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+  const cookieHeader = `reddit_session=${sessionCookie}`;
+
+  console.log('Fetching old Reddit submit page to scrape modhash...');
+  const submitPageRes = await makeRequest(`https://old.reddit.com/r/${subreddit}/submit`, {
+    method: 'GET',
+    headers: {
+      'Cookie': cookieHeader,
+      'User-Agent': userAgent
+    }
   });
 
-  const tokenRes = await makeRequest('https://www.reddit.com/api/v1/access_token', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + auth,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'GitAnalyticsProLaunchAgent/1.0'
-    }
-  }, tokenData);
-
-  const tokenJson = JSON.parse(tokenRes.body);
-  if (!tokenJson.access_token) {
-    throw new Error(`Reddit Auth Failed: ${tokenJson.error_description || tokenRes.body}`);
+  const modhashMatch = submitPageRes.body.match(/modhash['"]:\s*['"]([^'"]+)['"]/);
+  if (!modhashMatch) {
+    throw new Error('Could not find Reddit modhash. Your reddit_session cookie might be invalid or expired.');
   }
-  const accessToken = tokenJson.access_token;
-  console.log('✓ Reddit OAuth authenticated successfully.');
+  const modhash = modhashMatch[1];
+  console.log('✓ Found Reddit modhash:', modhash);
 
   console.log(`Submitting link post to r/${subreddit}...`);
   const submitData = querystring.stringify({
-    api_type: 'json',
+    uh: modhash,
     sr: subreddit,
     kind: 'link',
     title,
     url,
-    resubmit: 'true'
+    sendreplies: 'true',
+    api_type: 'json'
   });
 
-  const submitRes = await makeRequest('https://oauth.reddit.com/api/submit', {
+  const submitRes = await makeRequest('https://old.reddit.com/api/submit', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      'Cookie': cookieHeader,
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'GitAnalyticsProLaunchAgent/1.0'
+      'User-Agent': userAgent
     }
   }, submitData);
 
@@ -227,17 +217,18 @@ async function submitToReddit(creds, subreddit, title, url, commentText) {
 
   console.log('Posting introductory comment to Reddit thread...');
   const commentData = querystring.stringify({
-    api_type: 'json',
+    uh: modhash,
     thing_id: postName,
-    text: commentText
+    text: commentText,
+    api_type: 'json'
   });
 
-  const commentRes = await makeRequest('https://oauth.reddit.com/api/comment', {
+  const commentRes = await makeRequest('https://old.reddit.com/api/comment', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      'Cookie': cookieHeader,
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'GitAnalyticsProLaunchAgent/1.0'
+      'User-Agent': userAgent
     }
   }, commentData);
 
@@ -269,7 +260,7 @@ async function run() {
     } else if (targetChannel === 'reddit_sideproject') {
       const redditCopy = getLaunchCopy('Reddit (r/SideProject)');
       const postUrl = await submitToReddit(
-        creds,
+        creds.reddit_session,
         'SideProject',
         'I got tired of bloated SaaS tools demanding access to my private repos, so I built a zero-dependency local git visualizer.',
         GITHUB_REPO,
@@ -279,7 +270,7 @@ async function run() {
     } else if (targetChannel === 'reddit_selfhosted') {
       const redditCopy = getLaunchCopy('Reddit (r/SideProject)');
       const postUrl = await submitToReddit(
-        creds,
+        creds.reddit_session,
         'selfhosted',
         'Tired of SaaS tools asking for write-access to your private repos? I built a 100% offline local git visualizer.',
         GITHUB_REPO,
@@ -289,7 +280,7 @@ async function run() {
     } else if (targetChannel === 'reddit_webdev') {
       const redditCopy = getLaunchCopy('Reddit (r/SideProject)');
       const postUrl = await submitToReddit(
-        creds,
+        creds.reddit_session,
         'webdev',
         'How I built a stream-based git parser that analyzes 2,000 commits in 0.87 seconds with zero npm dependencies.',
         GITHUB_REPO,
