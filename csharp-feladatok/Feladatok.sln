@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Futsal", "Futsal\Futsal.csproj", "{C79D80E5-A130-45BC-89EE-821605E2B6B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuffaloHunter", "BuffaloHunter\BuffaloHunter.csproj", "{439DAA90-230A-4E77-BDB7-DB134776B21E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C79D80E5-A130-45BC-89EE-821605E2B6B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C79D80E5-A130-45BC-89EE-821605E2B6B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C79D80E5-A130-45BC-89EE-821605E2B6B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C79D80E5-A130-45BC-89EE-821605E2B6B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{439DAA90-230A-4E77-BDB7-DB134776B21E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{439DAA90-230A-4E77-BDB7-DB134776B21E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{439DAA90-230A-4E77-BDB7-DB134776B21E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{439DAA90-230A-4E77-BDB7-DB134776B21E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
