@@ -1,3 +1,5 @@
+using System;
+
 static class Input
 {
     // Addig kérdez, amíg min és max közötti egész számot nem kap.

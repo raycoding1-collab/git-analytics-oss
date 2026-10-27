@@ -1,3 +1,5 @@
+using System;
+
 class Game
 {
     private readonly Field field;
@@ -15,10 +17,34 @@ class Game
 
     public bool IsOver => AllShot || ReachedTarget;
 
-    private bool AllShot => buffaloes.All(b => !b.IsActive);
+    private bool AllShot => ActiveCount == 0;
 
-    private bool ReachedTarget =>
-        buffaloes.Any(b => b.IsActive && b.X == field.TargetX && b.Y == field.TargetY);
+    private bool ReachedTarget
+    {
+        get
+        {
+            foreach (Buffalo buffalo in buffaloes)
+            {
+                if (buffalo.IsActive && buffalo.X == field.TargetX && buffalo.Y == field.TargetY)
+                    return true;
+            }
+            return false;
+        }
+    }
+
+    private int ActiveCount
+    {
+        get
+        {
+            int count = 0;
+            foreach (Buffalo buffalo in buffaloes)
+            {
+                if (buffalo.IsActive)
+                    count++;
+            }
+            return count;
+        }
+    }
 
     public void Run()
     {
@@ -45,13 +71,20 @@ class Game
         Console.Clear();
         field.Show();
 
-        // A kilőtt bölények kerülnek előre, így közös mezőn az aktív (zöld) látszik.
-        foreach (Buffalo buffalo in buffaloes.OrderBy(b => b.IsActive))
-            buffalo.Show();
+        // Előbb a kilőtt bölények, így közös mezőn az aktív (zöld) látszik.
+        foreach (Buffalo buffalo in buffaloes)
+        {
+            if (!buffalo.IsActive)
+                buffalo.Show();
+        }
+        foreach (Buffalo buffalo in buffaloes)
+        {
+            if (buffalo.IsActive)
+                buffalo.Show();
+        }
 
         Console.SetCursorPosition(0, Field.OffsetY + field.Size + 2);
-        int active = buffaloes.Count(b => b.IsActive);
-        Console.WriteLine($"{round}. kör | aktív bölények: {active}/{buffaloes.Length} | cél: ({field.TargetX}, {field.TargetY})");
+        Console.WriteLine($"{round}. kör | aktív bölények: {ActiveCount}/{buffaloes.Length} | cél: ({field.TargetX}, {field.TargetY})");
         if (message != "")
             Console.WriteLine(message);
     }

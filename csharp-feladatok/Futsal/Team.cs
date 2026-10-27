@@ -1,3 +1,5 @@
+using System;
+
 class Team
 {
     public const int Size = 5;
@@ -49,6 +51,13 @@ class Team
         if (NumberOfPlayers == 0)
             return "  (még nincs játékos)";
 
-        return string.Join(Environment.NewLine, players.Take(NumberOfPlayers).Select(p => $"  {p}"));
+        string result = "";
+        for (int i = 0; i < NumberOfPlayers; i++)
+        {
+            if (i > 0)
+                result += Environment.NewLine;
+            result += $"  {players[i]}";
+        }
+        return result;
     }
 }

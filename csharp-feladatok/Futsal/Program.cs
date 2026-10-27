@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Text;
 
 class Program
@@ -50,7 +52,7 @@ class Program
                 message = "";
             }
 
-            if (!available.Any(p => !team.IsIncluded(p) && team.IsAvailable(p)))
+            if (!HasSelectablePlayer(available, team))
             {
                 Console.WriteLine("Az elérhető játékosokból nem állítható össze teljes csapat.");
                 return;
@@ -86,6 +88,17 @@ class Program
         Console.Clear();
         Console.WriteLine("A csapat összeállt:");
         Console.WriteLine(team);
+    }
+
+    // Van-e még olyan játékos, aki bekerülhet a csapatba?
+    static bool HasSelectablePlayer(Player[] players, Team team)
+    {
+        foreach (Player player in players)
+        {
+            if (!team.IsIncluded(player) && team.IsAvailable(player))
+                return true;
+        }
+        return false;
     }
 
     static Player[] RandomPlayers(int count)

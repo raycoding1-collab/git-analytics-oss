@@ -1,3 +1,5 @@
+using System;
+
 class Buffalo
 {
     private static readonly Random random = new Random();
@@ -19,11 +21,18 @@ class Buffalo
         if (!active)
             return;
 
-        var allowed = Steps.Where(s => field.AllowedPosition(x + s.Dx, y + s.Dy)).ToArray();
-        if (allowed.Length == 0)
+        // a pályán belül maradó lépések sorszámai
+        int[] allowed = new int[Steps.Length];
+        int count = 0;
+        for (int i = 0; i < Steps.Length; i++)
+        {
+            if (field.AllowedPosition(x + Steps[i].Dx, y + Steps[i].Dy))
+                allowed[count++] = i;
+        }
+        if (count == 0)
             return;
 
-        var step = allowed[random.Next(allowed.Length)];
+        var step = Steps[allowed[random.Next(count)]];
         x += step.Dx;
         y += step.Dy;
     }

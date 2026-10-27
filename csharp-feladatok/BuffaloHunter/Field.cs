@@ -1,3 +1,5 @@
+using System;
+
 class Field
 {
     // A (0, 0) mező helye a konzolon: előtte a sor-/oszlopszámok és a keret van.
